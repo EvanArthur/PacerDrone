@@ -1,6 +1,37 @@
 import cv2 as cv
 import numpy as np
 # import matplotlib.pyplot as plt
+from djitellopy import Tello
+
+
+
+######################################################################
+width = 640  # WIDTH OF THE IMAGE
+height = 480  # HEIGHT OF THE IMAGE
+deadZone =100
+######################################################################
+
+startCounter =0
+
+# CONNECT TO TELLO
+me = Tello()
+me.connect()
+me.for_back_velocity = 0
+me.left_right_velocity = 0
+me.up_down_velocity = 0
+me.yaw_velocity = 0
+me.speed = 0
+
+
+
+print(me.get_battery())
+
+me.streamoff()
+me.streamon()
+######################## 
+
+frameWidth = width
+frameHeight = height
 
 def do_canny(frame):
     # Converts frame to grayscale because we only need the luminance channel for detecting edges - less computationally expensive
@@ -32,21 +63,23 @@ def calculate_lines(frame, lines):
     left = []
     right = []
     # Loops through every detected line
-    for line in lines:
-        # Reshapes line from 2D array to 1D array
-        x1, y1, x2, y2 = line.reshape(4)
-        # Fits a linear polynomial to the x and y coordinates and returns a vector of coefficients which describe the slope and y-intercept
-        parameters = np.polyfit((x1, x2), (y1, y2), 1)
-        slope = parameters[0]
-        y_intercept = parameters[1]
-        # If slope is negative, the line is to the left of the lane, and otherwise, the line is to the right of the lane
-        if slope < 0:
-            left.append((slope, y_intercept))
-        else:
-            right.append((slope, y_intercept))
+    if lines != None:
+        for line in lines:
+            # Reshapes line from 2D array to 1D array
+            x1, y1, x2, y2 = line.reshape(4)
+            # Fits a linear polynomial to the x and y coordinates and returns a vector of coefficients which describe the slope and y-intercept
+            parameters = np.polyfit((x1, x2), (y1, y2), 1)
+            slope = parameters[0]
+            y_intercept = parameters[1]
+            # If slope is negative, the line is to the left of the lane, and otherwise, the line is to the right of the lane
+            if slope < 0:
+                left.append((slope, y_intercept))
+            else:
+                right.append((slope, y_intercept))
     # Averages out all the values for left and right into a single slope and y-intercept value for each line
     left_avg = np.average(left, axis = 0)
     right_avg = np.average(right, axis = 0)
+    
     # Calculates the x1, y1, x2, y2 coordinates for the left and right lines
     left_line = calculate_coordinates(frame, left_avg)
     right_line = calculate_coordinates(frame, right_avg)
@@ -75,12 +108,13 @@ def visualize_lines(frame, lines):
     return lines_visualize
 
 # The video feed is read in as a VideoCapture object
-cap = cv.VideoCapture("input.mp4")
-while (cap.isOpened()):
-    # ret = a boolean return value from getting the frame, frame = the current frame being projected in the video
-    ret, frame = cap.read()
+# cap = cv.VideoCapture("input.mp4")
+while True:
+    frame_read = me.get_frame_read()
+    frame = frame_read.frame
+    # frame = cv.resize(frame, (width, height))
     canny = do_canny(frame)
-    cv.imshow("canny", canny)
+    # cv.imshow("canny", canny)
     # plt.imshow(frame)
     # plt.show()
     segment = do_segment(canny)
@@ -89,7 +123,7 @@ while (cap.isOpened()):
     lines = calculate_lines(frame, hough)
     # Visualizes the lines
     lines_visualize = visualize_lines(frame, lines)
-    cv.imshow("hough", lines_visualize)
+    # cv.imshow("hough", lines_visualize)
     # Overlays lines on frame by taking their weighted sums and adding an arbitrary scalar value of 1 as the gamma argument
     output = cv.addWeighted(frame, 0.9, lines_visualize, 1, 1)
     # Opens a new window and displays the output frame
@@ -97,6 +131,30 @@ while (cap.isOpened()):
     # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
     if cv.waitKey(10) & 0xFF == ord('q'):
         break
-# The following frees up resources and closes all windows
-cap.release()
+
+
+
+# while (cap.isOpened()):
+#     # ret = a boolean return value from getting the frame, frame = the current frame being projected in the video
+#     ret, frame = cap.read()
+#     canny = do_canny(frame)
+#     cv.imshow("canny", canny)
+#     # plt.imshow(frame)
+#     # plt.show()
+#     segment = do_segment(canny)
+#     hough = cv.HoughLinesP(segment, 2, np.pi / 180, 100, np.array([]), minLineLength = 100, maxLineGap = 50)
+#     # Averages multiple detected lines from hough into one line for left border of lane and one line for right border of lane
+#     lines = calculate_lines(frame, hough)
+#     # Visualizes the lines
+#     lines_visualize = visualize_lines(frame, lines)
+#     cv.imshow("hough", lines_visualize)
+#     # Overlays lines on frame by taking their weighted sums and adding an arbitrary scalar value of 1 as the gamma argument
+#     output = cv.addWeighted(frame, 0.9, lines_visualize, 1, 1)
+#     # Opens a new window and displays the output frame
+#     cv.imshow("output", output)
+#     # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
+#     if cv.waitKey(10) & 0xFF == ord('q'):
+#         break
+# # The following frees up resources and closes all windows
+# cap.release()
 cv.destroyAllWindows()
