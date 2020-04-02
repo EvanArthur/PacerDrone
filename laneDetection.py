@@ -63,7 +63,7 @@ def calculate_lines(frame, lines):
     left = []
     right = []
     # Loops through every detected line
-    if lines != None:
+    if lines is not None:
         for line in lines:
             # Reshapes line from 2D array to 1D array
             x1, y1, x2, y2 = line.reshape(4)
@@ -77,13 +77,18 @@ def calculate_lines(frame, lines):
             else:
                 right.append((slope, y_intercept))
     # Averages out all the values for left and right into a single slope and y-intercept value for each line
-    left_avg = np.average(left, axis = 0)
-    right_avg = np.average(right, axis = 0)
-    
-    # Calculates the x1, y1, x2, y2 coordinates for the left and right lines
-    left_line = calculate_coordinates(frame, left_avg)
-    right_line = calculate_coordinates(frame, right_avg)
-    return np.array([left_line, right_line])
+        left_avg = np.average(left, axis = 0)
+        right_avg = np.average(right, axis = 0)
+        print("right: ", right)
+        print("left avg: ", left_avg)
+        print("right avg: ", right_avg)
+        
+        # Calculates the x1, y1, x2, y2 coordinates for the left and right lines
+        left_line = calculate_coordinates(frame, left_avg)
+        right_line = calculate_coordinates(frame, right_avg)
+        return np.array([left_line, right_line])
+    else:
+        return None
 
 def calculate_coordinates(frame, parameters):
     slope, intercept = parameters
@@ -114,13 +119,15 @@ while True:
     frame = frame_read.frame
     # frame = cv.resize(frame, (width, height))
     canny = do_canny(frame)
-    # cv.imshow("canny", canny)
+    cv.imshow("canny", canny)
     # plt.imshow(frame)
     # plt.show()
     segment = do_segment(canny)
     hough = cv.HoughLinesP(segment, 2, np.pi / 180, 100, np.array([]), minLineLength = 100, maxLineGap = 50)
     # Averages multiple detected lines from hough into one line for left border of lane and one line for right border of lane
     lines = calculate_lines(frame, hough)
+    if lines is None:
+        continue
     # Visualizes the lines
     lines_visualize = visualize_lines(frame, lines)
     # cv.imshow("hough", lines_visualize)
