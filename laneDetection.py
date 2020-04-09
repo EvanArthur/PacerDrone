@@ -48,7 +48,7 @@ def do_segment(frame):
     height = frame.shape[0]
     # Creates a triangular polygon for the mask defined by three (x, y) coordinates
     polygons = np.array([
-                            [(0, height), (800, height), (380, 290)]
+                            [(0, height), (width, height), (320, 240)]
                         ])
     # Creates an image filled with zero intensities with the same dimensions as the frame
     mask = np.zeros_like(frame)
@@ -63,20 +63,23 @@ def calculate_lines(frame, lines):
     left = []
     right = []
     # Loops through every detected line
-    if lines is not None:
-        for line in lines:
-            # Reshapes line from 2D array to 1D array
-            x1, y1, x2, y2 = line.reshape(4)
-            # Fits a linear polynomial to the x and y coordinates and returns a vector of coefficients which describe the slope and y-intercept
-            parameters = np.polyfit((x1, x2), (y1, y2), 1)
-            slope = parameters[0]
-            y_intercept = parameters[1]
-            # If slope is negative, the line is to the left of the lane, and otherwise, the line is to the right of the lane
-            if slope < 0:
-                left.append((slope, y_intercept))
-            else:
-                right.append((slope, y_intercept))
+    for line in lines:
+        # Reshapes line from 2D array to 1D array
+        x1, y1, x2, y2 = line.reshape(4)
+        # Fits a linear polynomial to the x and y coordinates and returns a vector of coefficients which describe the slope and y-intercept
+        parameters = np.polyfit((x1, x2), (y1, y2), 1)
+        slope = parameters[0]
+        y_intercept = parameters[1]
+        # If slope is negative, the line is to the left of the lane, and otherwise, the line is to the right of the lane
+        if slope < 0:
+            left.append((slope, y_intercept))
+        else:
+            right.append((slope, y_intercept))
     # Averages out all the values for left and right into a single slope and y-intercept value for each line
+        if right == []:
+            return None
+        if left == []:
+            return None
         left_avg = np.average(left, axis = 0)
         right_avg = np.average(right, axis = 0)
         print("right: ", right)
@@ -117,24 +120,32 @@ def visualize_lines(frame, lines):
 while True:
     frame_read = me.get_frame_read()
     frame = frame_read.frame
-    # frame = cv.resize(frame, (width, height))
+    frame = cv.resize(frame, (width, height))
     canny = do_canny(frame)
-    cv.imshow("canny", canny)
-    # plt.imshow(frame)
-    # plt.show()
+    # cv.imshow("canny", canny)
+
     segment = do_segment(canny)
-    hough = cv.HoughLinesP(segment, 2, np.pi / 180, 100, np.array([]), minLineLength = 100, maxLineGap = 50)
-    # Averages multiple detected lines from hough into one line for left border of lane and one line for right border of lane
-    lines = calculate_lines(frame, hough)
-    if lines is None:
-        continue
-    # Visualizes the lines
-    lines_visualize = visualize_lines(frame, lines)
-    # cv.imshow("hough", lines_visualize)
-    # Overlays lines on frame by taking their weighted sums and adding an arbitrary scalar value of 1 as the gamma argument
-    output = cv.addWeighted(frame, 0.9, lines_visualize, 1, 1)
-    # Opens a new window and displays the output frame
-    cv.imshow("output", output)
+    # cv.imshow("segment",segment)
+    hough = cv.HoughLinesP(canny, 2, np.pi / 180, 100, minLineLength = 100, maxLineGap = 50)
+    if type(hough) is np.ndarray:
+        # for x1,y1,x2,y2 in hough[0]:
+        #     cv.line(frame,(x1,y1),(x2,y2),(255,255,0),2)
+        # cv.imshow("hough", frame)
+        # Averages multiple detected lines from hough into one line for left border of lane and one line for right border of lane
+
+        lines = calculate_lines(frame, hough)
+        if type(lines) is np.ndarray:
+            print("HERE")
+            print(lines)
+            # Visualizes the lines
+            lines_visualize = visualize_lines(frame, lines)
+            # cv.imshow("hough", lines_visualize)
+            # Overlays lines on frame by taking their weighted sums and adding an arbitrary scalar value of 1 as the gamma argument
+            output = cv.addWeighted(frame, 0.9, lines_visualize, 1, 1)
+            # Opens a new window and displays the output frame
+            cv.imshow("output", output)
+        else:
+            print("fail")
     # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
     if cv.waitKey(10) & 0xFF == ord('q'):
         break
