@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 # import matplotlib.pyplot as plt
 from djitellopy import Tello
+import time
 
 
 
@@ -121,42 +122,50 @@ def visualize_lines(frame, lines):
     return lines_visualize
 
 # The video feed is read in as a VideoCapture object
+# frame_rate is in fps
+frame_rate = 20
+
+prev = 0
 cap = cv.VideoCapture("straightSimpleLine.mp4")
 while True:
     # frame_read = me.get_frame_read()
     # frame = frame_read.frame
     cap.grab()
     result, img = cap.retrieve()
+    time_elapsed = time.time() - prev
 
-    frame = cv.resize(img, (width, height))
-    canny = do_canny(frame)
-    # cv.imshow("canny", canny)
+    if time_elapsed > 1./frame_rate:
+        prev = time.time()
 
-    segment = do_segment(canny)
-    # cv.imshow("segment",segment)
-    hough = cv.HoughLinesP(canny, 2, np.pi / 180, 100, minLineLength = 100, maxLineGap = 50)
-    if type(hough) is np.ndarray:
-        for x1,y1,x2,y2 in hough[0]:
-            cv.line(frame,(x1,y1),(x2,y2),(255,255,0),2)
-        cv.imshow("hough", frame)
-        # Averages multiple detected lines from hough into one line for left border of lane and one line for right border of lane
+        frame = cv.resize(img, (width, height))
+        canny = do_canny(frame)
+        # cv.imshow("canny", canny)
 
-        lines = calculate_lines(frame, hough)
-        if type(lines) is np.ndarray:
-            print("HERE")
-            print(lines)
-            # Visualizes the lines
-            lines_visualize = visualize_lines(frame, lines)
-            # cv.imshow("hough", lines_visualize)
-            # Overlays lines on frame by taking their weighted sums and adding an arbitrary scalar value of 1 as the gamma argument
-            output = cv.addWeighted(frame, 0.9, lines_visualize, 1, 1)
-            # Opens a new window and displays the output frame
-            cv.imshow("output", output)
-        else:
-            print("fail")
-    # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
-    if cv.waitKey(10) & 0xFF == ord('q'):
-        break
+        segment = do_segment(canny)
+        # cv.imshow("segment",segment)
+        hough = cv.HoughLinesP(canny, 2, np.pi / 180, 100, minLineLength = 100, maxLineGap = 50)
+        if type(hough) is np.ndarray:
+            for x1,y1,x2,y2 in hough[0]:
+                cv.line(frame,(x1,y1),(x2,y2),(255,255,0),2)
+            cv.imshow("hough", frame)
+            # Averages multiple detected lines from hough into one line for left border of lane and one line for right border of lane
+
+            lines = calculate_lines(frame, hough)
+            if type(lines) is np.ndarray:
+                print("HERE")
+                print(lines)
+                # Visualizes the lines
+                lines_visualize = visualize_lines(frame, lines)
+                # cv.imshow("hough", lines_visualize)
+                # Overlays lines on frame by taking their weighted sums and adding an arbitrary scalar value of 1 as the gamma argument
+                output = cv.addWeighted(frame, 0.9, lines_visualize, 1, 1)
+                # Opens a new window and displays the output frame
+                cv.imshow("output", output)
+            else:
+                print("fail")
+        # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
+        if cv.waitKey(10) & 0xFF == ord('q'):
+            break
 
 
 

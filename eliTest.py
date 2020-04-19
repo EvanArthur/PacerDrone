@@ -38,9 +38,10 @@ frameWidth = width
 frameHeight = height
 
 def undistort_img():
+    print("In undistort!***")
     # Prepare object points 0,0,0 ... 8,5,0
-    obj_pts = np.zeros((6*9,3), np.float32)
-    obj_pts[:,:2] = np.mgrid[0:9, 0:6].T.reshape(-1,2)
+    obj_pts = np.zeros((7*7,3), np.float32)
+    obj_pts[:,:2] = np.mgrid[0:7, 0:7].T.reshape(-1,2)
 
     # Stores all object points & img points from all images
     objpoints = []
@@ -50,10 +51,11 @@ def undistort_img():
     images = glob.glob('camera_cal/*.jpg')
 
     for indx, fname in enumerate(images):
+        print("Reading: ", fname)
         img = cv2.imread(fname)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        ret, corners = cv2.findChessboardCorners(gray, (9,6), None)
+        ret, corners = cv2.findChessboardCorners(gray, (7,7), None)
 
         if ret == True:
             objpoints.append(obj_pts)
@@ -72,7 +74,7 @@ def undistort_img():
     pickle.dump( dist_pickle, open('camera_cal/cal_pickle.p', 'wb') )
 
 def undistort(img, cal_dir='camera_cal/cal_pickle.p'):
-    #cv2.imwrite('camera_cal/test_cal.jpg', dst)
+    # cv2.imwrite('camera_cal/test_cal.jpg', dst)
     with open(cal_dir, mode='rb') as f:
         file = pickle.load(f)
     mtx = file['mtx']
@@ -81,8 +83,8 @@ def undistort(img, cal_dir='camera_cal/cal_pickle.p'):
     
     return dst
 
-def pipeline(img, s_thresh=(100, 255), sx_thresh=(15, 255)):
-    # img = undistort(img)
+def pipeline(img, s_thresh=(130, 255), sx_thresh=(130, 255)):
+    img = undistort(img)
     img = np.copy(img)
     # Convert to HLS color space and separate the V channel
     hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
@@ -108,9 +110,19 @@ def pipeline(img, s_thresh=(100, 255), sx_thresh=(15, 255)):
     combined_binary[(s_binary == 1) | (sxbinary == 1)] = 1
     return combined_binary
 
+OGx1 = 0.43
+OGy1 = 0.65
+OGx2 = 0.58
+OGy2 = 0.65
+
+testx1 = 0.4
+testy1 = 0.5
+testx2 = 0.58
+testy2 = testy1
+
 def perspective_warp(img, 
                      dst_size=(1280,720),
-                     src=np.float32([(0.43,0.65),(0.58,0.65),(0.1,1),(1,1)]),
+                     src=np.float32([(testx1,testy1),(testx2,testy2),(0.1,1),(1,1)]),
                      dst=np.float32([(0,0), (1, 0), (0,1), (1,1)])):
     img_size = np.float32([(img.shape[1],img.shape[0])])
     src = src* img_size
@@ -127,7 +139,7 @@ def perspective_warp(img,
 def inv_perspective_warp(img, 
                      dst_size=(1280,720),
                      src=np.float32([(0,0), (1, 0), (0,1), (1,1)]),
-                     dst=np.float32([(0.43,0.65),(0.58,0.65),(0.1,1),(1,1)])):
+                     dst=np.float32([(testx1,testy1),(testx2,testy2),(0.1,1),(1,1)])):
     img_size = np.float32([(img.shape[1],img.shape[0])])
     src = src* img_size
     # For destination points, I'm arbitrarily choosing some points to be
@@ -138,6 +150,7 @@ def inv_perspective_warp(img,
     M = cv2.getPerspectiveTransform(src, dst)
     # Warp the image using OpenCV warpPerspective()
     warped = cv2.warpPerspective(img, M, dst_size)
+    # plt.show()
     return warped
 
 def get_hist(img):
@@ -307,27 +320,34 @@ def vid_pipeline(img):
 
 
 # undistort_img()
-# img = cv2.imread('camera_cal/calibration1.jpg')
+# img = cv2.imread('camera_cal/cal1.jpg')
 # dst = undistort(img)
 
-# Visualize undistortion
+# # Visualize undistortion
 # f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
 # ax1.imshow(img)
 # ax1.set_title('Original Image', fontsize=30)
+
+
 # ax2.imshow(dst)
 # ax2.set_title('Undistorted Image', fontsize=30)
+
+
 # img = cv2.imread('test_images/test3.jpg')
 # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 # dst = undistort(img)
 
 
-# Visualize undistortion
+# # Visualize undistortion
 # f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
 # ax1.imshow(img)
 # ax1.set_title('Original Image', fontsize=30)
 # ax2.imshow(dst)
-cap = cv2.VideoCapture("straightSimpleLine.mp4")
-while True:
+
+
+cap = cv2.VideoCapture("curved.mp4")
+test = True
+while test == True:
     left_a, left_b, left_c = [],[],[]
     right_a, right_b, right_c = [],[],[]
     # frame_read = me.get_frame_read()
@@ -344,18 +364,20 @@ while True:
     plt.imshow(out_img)
     plt.plot(curves[0], ploty, color='yellow', linewidth=1)
     plt.plot(curves[1], ploty, color='yellow', linewidth=1)
-    # print(np.asarray(curves).shape)
+    print(np.asarray(curves).shape)
     curverad=get_curve(img, curves[0],curves[1])
     print(curverad)
     img_ = draw_lanes(img, curves[0], curves[1])
-    # cv2.imshow("final",out_img)
+    cv2.imshow("img",img_)
+    cv2.waitKey(1)
 
     # Visualize undistortion
-    # f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
-    # ax1.imshow(img)
-    # ax1.set_title('Original Image', fontsize=30)
-    # ax2.imshow(dst, cmap='gray')
-    # ax2.set_title('Warped Image', fontsize=30)
-    # ax2.set_title('Undistorted Image', fontsize=30)
+    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
+    ax1.imshow(img)
+    ax1.set_title('Original Image', fontsize=30)
+    ax2.imshow(dst, cmap='gray')
+    ax2.set_title('Warped Image', fontsize=30)
+    ax2.set_title('Undistorted Image', fontsize=30)
+    # test = False
 
 
