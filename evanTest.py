@@ -6,7 +6,7 @@ import glob
 import matplotlib.pyplot as plt
 import pickle
 from djitellopy import Tello
-import threading
+from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
@@ -320,6 +320,32 @@ def vid_pipeline(img):
     return img
 
 
+class ThreadedCamera(object):
+    def __init__(self, src=0):
+        self.capture = cv2.VideoCapture(src)
+        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+
+        # FPS = 1/X
+        # X = desired FPS
+        self.FPS = 1/30
+        self.FPS_MS = int(self.FPS * 1000)
+
+        # Start frame retrieval thread
+        self.thread = Thread(target=self.update, args=())
+        self.thread.daemon = True
+        self.thread.start()
+
+    def update(self):
+        while True:
+            if self.capture.isOpened():
+                (self.status, self.frame) = self.capture.read()
+            time.sleep(self.FPS)
+
+    def show_frame(self):
+        
+        # cv2.imshow('frame', self.frame)
+        cv2.waitKey(self.FPS_MS)
+        return self.frame
 
 # undistort_img()
 # img = cv2.imread('camera_cal/cal1.jpg')
@@ -347,18 +373,25 @@ def vid_pipeline(img):
 # ax2.imshow(dst)
 
 
-cap = cv2.VideoCapture("curved.mp4")
+# cap = cv2.VideoCapture("curved.mp4") 
+# cap.set(cv2.CAP_PROP_BUFFERSIZE, 5)
+# cap.set(cv2.CAP_PROP_FPS, 5)
+threaded_camera = ThreadedCamera("straightLines2.mp4")
 test = True
 count = 0
-while test == True:
-    left_a, left_b, left_c = [],[],[]
-    right_a, right_b, right_c = [],[],[]
-    # frame_read = me.get_frame_read()
-    # frame = frame_read.frame
-    cap.grab()
-    result, img = cap.retrieve()
-    if count % 4 == 0:
+while True:
+    try:
+        img = threaded_camera.show_frame()
+        left_a, left_b, left_c = [],[],[]
+        right_a, right_b, right_c = [],[],[]
+        # frame_read = me.get_frame_read()
+        # frame = frame_read.frame
+
+        # cap.grab()
+        # result, img = cap.retrieve()
         frame = cv2.resize(img, (width, height))
+        # print(frame.shape)
+        # frame = frame[0:int(height/2),0:width,0:3]
         # frame = cv2.resize(frame, (width, height))
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         dst = pipeline(frame)
@@ -383,6 +416,8 @@ while test == True:
         ax2.set_title('Warped Image', fontsize=30)
         ax2.set_title('Undistorted Image', fontsize=30)
         # test = False
-    count += 1
+    except AttributeError:
+        pass
+
 
 
