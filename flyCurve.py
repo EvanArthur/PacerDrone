@@ -3,23 +3,11 @@ import math
 import time
 
 def flyCurve(tello, r, speed):
-    # try:
-    #     print("Trying curve now")
-    #     y = int(-1*math.sqrt(r/2) + r*math.sin(67.5*math.pi/180))
-    #     print("y coord: ", y)
-    #     x1 = int(math.sqrt(r/2) + r*math.cos(67.5*math.pi/180))
-    #     print("X1 coord: ", x1)
-    #     x2 = int(math.sqrt(r*2) + r*math.cos(67.5*math.pi/180))
-    #     print("X2 coord: ", x2)
+    yaw = int(speed*180/(r*math.pi))*-1
+    print("yaw is: ", yaw)
 
-    #     tello.go_xyz_speed(x1, y, 0, speed)
-    #     tello.go_xyz_speed(x2, y, 0, speed)
-    # except Exception:
-    #     print(Exception)
-    #     tello.land()
+    tello.send_rc_control(0, speed, 0, yaw)
 
-    tello.send_rc_control(0, 25, 0, -50)
-    time.sleep(5)
 
 def main():
     # CONNECT TO TELLO
@@ -38,9 +26,7 @@ def main():
     ########################
 
     me.takeoff()
-    flyCurve(me, 100, 20)
-    me.flip_back()
-    # time.sleep(5)
+    flyCurve(me, 200, 100)
     me.land()
 
 if __name__ == "__main__":
