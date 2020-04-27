@@ -88,6 +88,7 @@ def undistort(img, cal_dir='camera_cal/cal_pickle.p'):
 
 def pipeline(img, s_thresh=(130, 255), sx_thresh=(130, 255)):
     img = undistort(img)
+    # cv2.imwrite("undistorted.jpg",img)
     img = np.copy(img)
     # Convert to HLS color space and separate the V channel
     hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
@@ -376,7 +377,7 @@ class ThreadedCamera(object):
 # cap = cv2.VideoCapture("curved.mp4") 
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 5)
 # cap.set(cv2.CAP_PROP_FPS, 5)
-threaded_camera = ThreadedCamera("straightLines2.mp4")
+threaded_camera = ThreadedCamera("curved.mp4")
 test = True
 count = 0
 while True:
@@ -418,6 +419,48 @@ while True:
         # test = False
     except AttributeError:
         pass
+# while count < 100:
+#     threaded_camera.show_frame()
+#     count += 1
+# img = threaded_camera.show_frame()
+# left_a, left_b, left_c = [],[],[]
+# right_a, right_b, right_c = [],[],[]
+# # frame_read = me.get_frame_read()
+# # frame = frame_read.frame
+
+# # cap.grab()
+# # result, img = cap.retrieve()
+# frame = cv2.resize(img, (width, height))
+# cv2.imwrite("raw.jpg",frame)
+# # print(frame.shape)
+# # frame = frame[0:int(height/2),0:width,0:3]
+# # frame = cv2.resize(frame, (width, height))
+# frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+# cv2.imwrite("re_colored.jpg",frame)
+# dst = pipeline(frame)
+# dst = perspective_warp(dst, dst_size=(1280,720))
+# cv2.imwrite("un_warped.jpg",dst)
+
+# out_img, curves, lanes, ploty = sliding_window(dst, draw_windows = False)
+# cv2.imwrite("sliding_window.jpg",out_img)
+# plt.imshow(out_img)
+# # plt.plot(curves[0], ploty, color='yellow', linewidth=1)
+# # plt.plot(curves[1], ploty, color='yellow', linewidth=1)
+# # print(np.asarray(curves).shape)
+# curverad=get_curve(img, curves[0],curves[1])
+# print(curverad)
+# img_ = draw_lanes(img, curves[0], curves[1])
+# cv2.imwrite("curves.jpg",img_)
+# cv2.imshow("img",img_)
+# cv2.waitKey(1)
+
+# # Visualize undistortion
+# f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
+# ax1.imshow(img)
+# ax1.set_title('Original Image', fontsize=30)
+# ax2.imshow(dst, cmap='gray')
+# ax2.set_title('Warped Image', fontsize=30)
+# ax2.set_title('Undistorted Image', fontsize=30)
 
 
 
