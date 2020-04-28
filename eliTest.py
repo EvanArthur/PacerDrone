@@ -158,7 +158,7 @@ def get_hist(img):
     return hist
 
 
-def sliding_window(img, nwindows=9, margin=60, minpix = 1, draw_windows=True):
+def sliding_window(img, nwindows=9, margin=120, minpix = 1, draw_windows=True):
     global left_a, left_b, left_c,right_a, right_b, right_c 
     left_fit_= np.empty(3)
     right_fit_ = np.empty(3)
@@ -357,7 +357,7 @@ def vid_pipeline(img):
 # ax2.imshow(dst)
 
 
-cap = cv2.VideoCapture("1secondCurve.mp4")
+cap = cv2.VideoCapture("curved.mp4")
 test = True
 while test == True:
     left_a, left_b, left_c = [],[],[]
