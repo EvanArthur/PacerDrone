@@ -3,7 +3,7 @@ import math
 import time
 
 def flyCurve(tello, r, speed):
-    yaw = int(speed*180/(r*math.pi))*-1
+    yaw = int(speed*180/(r*math.pi))
     print("yaw is: ", yaw)
 
     tello.send_rc_control(0, speed, 0, yaw)
@@ -26,7 +26,8 @@ def main():
     ########################
 
     me.takeoff()
-    flyCurve(me, 200, 100)
+    flyCurve(me, 160, 50)
+    time.sleep(5)
     me.land()
 
 if __name__ == "__main__":
