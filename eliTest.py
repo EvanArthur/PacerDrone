@@ -84,6 +84,7 @@ def undistort(img, cal_dir='camera_cal/cal_pickle.p'):
     return dst
 
 def pipeline(img, s_thresh=(130, 255), sx_thresh=(130, 255)):
+    plt.show()
     img = undistort(img)
     img = np.copy(img)
     # Convert to HLS color space and separate the V channel
@@ -115,9 +116,9 @@ OGy1 = 0.65
 OGx2 = 0.58
 OGy2 = 0.65
 
-testx1 = 0.4
+testx1 = 0.3
 testy1 = 0.5
-testx2 = 0.58
+testx2 = 0.6
 testy2 = testy1
 
 def perspective_warp(img, 
@@ -150,7 +151,6 @@ def inv_perspective_warp(img,
     M = cv2.getPerspectiveTransform(src, dst)
     # Warp the image using OpenCV warpPerspective()
     warped = cv2.warpPerspective(img, M, dst_size)
-    # plt.show()
     return warped
 
 def get_hist(img):
@@ -158,7 +158,7 @@ def get_hist(img):
     return hist
 
 
-def sliding_window(img, nwindows=9, margin=150, minpix = 1, draw_windows=True):
+def sliding_window(img, nwindows=9, margin=60, minpix = 1, draw_windows=True):
     global left_a, left_b, left_c,right_a, right_b, right_c 
     left_fit_= np.empty(3)
     right_fit_ = np.empty(3)
@@ -167,8 +167,20 @@ def sliding_window(img, nwindows=9, margin=150, minpix = 1, draw_windows=True):
     histogram = get_hist(img)
     # find peaks of left and right halves
     midpoint = int(histogram.shape[0]/2)
+    
+    # below: Eli PLaying with thresholding on histogram to find first two lanes
+    # thresholdList = histogram[np.nonzero(histogram > 50)]
+    # leftx_base = thresholdList[0]
+    # print("My leftx_base: ", leftx_base)
+    # rightx_base = thresholdList[1]
+    # print("My rightx_base: ", rightx_base)
+
     leftx_base = np.argmax(histogram[:midpoint])
+    print("Real leftx_base: ", leftx_base)
+    # print("LEFTBASE: ", thresholdList.shape)
     rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+    print("Real rightx_base: ", rightx_base)
+    print("VALUE: ", histogram[rightx_base])
     
     
     # Set height of windows
@@ -345,7 +357,7 @@ def vid_pipeline(img):
 # ax2.imshow(dst)
 
 
-cap = cv2.VideoCapture("curved.mp4")
+cap = cv2.VideoCapture("1secondCurve.mp4")
 test = True
 while test == True:
     left_a, left_b, left_c = [],[],[]
@@ -354,8 +366,9 @@ while test == True:
     # frame = frame_read.frame
     cap.grab()
     result, img = cap.retrieve()
+    OGimg = img
     frame = cv2.resize(img, (width, height))
-    # frame = cv2.resize(frame, (width, height))
+
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     dst = pipeline(frame)
     dst = perspective_warp(dst, dst_size=(1280,720))
@@ -372,12 +385,15 @@ while test == True:
     cv2.waitKey(1)
 
     # Visualize undistortion
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
-    ax1.imshow(img)
-    ax1.set_title('Original Image', fontsize=30)
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10,4))
+    ax1.imshow(frame)
+    ax1.set_title('Original', fontsize=10)
     ax2.imshow(dst, cmap='gray')
-    ax2.set_title('Warped Image', fontsize=30)
-    ax2.set_title('Undistorted Image', fontsize=30)
+    ax2.set_title('Sobel Threshold', fontsize=10)
+    ax3.imshow(out_img)
+    ax3.set_title('Sliding Windows', fontsize=10)
     # test = False
+
+
 
 
