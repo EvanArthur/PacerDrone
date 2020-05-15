@@ -6,10 +6,6 @@ import glob
 import matplotlib.pyplot as plt
 import pickle
 from djitellopy import Tello
-import csv
-from threading import Thread
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import time
 
 
 
@@ -86,23 +82,11 @@ def undistort(img, cal_dir='camera_cal/cal_pickle.p'):
     dst = cv2.undistort(img, mtx, dist, None, mtx)
     
     return dst
-# def pipeline(img, s_thresh=(130, 255), sx_thresh=(130, 255)):
-def pipeline(img, s_thresh=(50, 255), sx_thresh=(130, 255)):
-    # plt.show()
+
+def pipeline(img, s_thresh=(130, 255), sx_thresh=(130, 255)):
+    plt.show()
     img = undistort(img)
     img = np.copy(img)
-
-
-    # h, s, v
-    lower_white = np.array([0,0,0])
-    upper_white = np.array([255,30,255])
-    
-    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    mask = cv2.inRange(hsv, lower_white, upper_white)
-
-
-    res = cv2.bitwise_and(img,img, mask= mask)
-    img = res
     # Convert to HLS color space and separate the V channel
     hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
     l_channel = hls[:,:,1]
@@ -132,14 +116,9 @@ OGy1 = 0.65
 OGx2 = 0.58
 OGy2 = 0.65
 
-xtestx1 = 0.3
-xtesty1 = 0.5
-xtestx2 = 0.6
-# xtesty2 = testy1
-
 testx1 = 0.3
 testy1 = 0.5
-testx2 = 0.65
+testx2 = 0.6
 testy2 = testy1
 
 def perspective_warp(img, 
@@ -270,13 +249,9 @@ def sliding_window(img, nwindows=9, margin=120, minpix = 1, draw_windows=True):
     righty = nonzeroy[right_lane_inds] 
 
     # Fit a second order polynomial to each
-    try:
-        left_fit = np.polyfit(lefty, leftx, 2)
-        right_fit = np.polyfit(righty, rightx, 2)
-    except:
-        left_fit = [0,0,0]
-        right_fit = [0,0,0]
-
+    left_fit = np.polyfit(lefty, leftx, 2)
+    right_fit = np.polyfit(righty, rightx, 2)
+    
     left_a.append(left_fit[0])
     left_b.append(left_fit[1])
     left_c.append(left_fit[2])
@@ -374,33 +349,6 @@ def vid_pipeline(img):
 # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 # dst = undistort(img)
 
-class ThreadedCamera(object):
-    def __init__(self, src=0):
-        self.capture = cv2.VideoCapture(src)
-        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-
-        # FPS = 1/X
-        # X = desired FPS
-        self.FPS = 1/10
-        self.FPS_MS = int(self.FPS * 1000)
-
-        # Start frame retrieval thread
-        self.thread = Thread(target=self.update, args=())
-        self.thread.daemon = True
-        self.thread.start()
-
-    def update(self):
-        while True:
-            if self.capture.isOpened():
-                (self.status, self.frame) = self.capture.read()
-            time.sleep(self.FPS)
-
-    def show_frame(self):
-        
-        # cv2.imshow('frame', self.frame)
-        cv2.waitKey(self.FPS_MS)
-        return self.frame
-
 
 # # Visualize undistortion
 # f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
@@ -409,11 +357,10 @@ class ThreadedCamera(object):
 # ax2.imshow(dst)
 
 
-# cap = cv2.VideoCapture("shortenedTestVid.mov")
-# cap = cv2.VideoCapture("spedUpVid.mov")
-# cap = cv2.VideoCapture("trimmedStraight.mov")
-# cap = cv2.VideoCapture("trimmedStraight2.mov")
+cap = cv2.VideoCapture("curved.mp4")
 test = True
+<<<<<<< HEAD
+<<<<<<< HEAD
 # out = cv2.VideoWriter('outpy4.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (1280,720))
 # filename = 'curveDataELI.csv'
 # with open(filename, 'a+', newline='') as file:
@@ -422,24 +369,19 @@ test = True
 
 threaded_camera = ThreadedCamera("straightToCurves.mp4")
 
+=======
+>>>>>>> parent of e01a9af... Working Computer Vision of track
+=======
+>>>>>>> parent of e01a9af... Working Computer Vision of track
 while test == True:
     left_a, left_b, left_c = [],[],[]
     right_a, right_b, right_c = [],[],[]
-    img = threaded_camera.show_frame()
     # frame_read = me.get_frame_read()
     # frame = frame_read.frame
-    # cap.grab()
-    # result, img = cap.retrieve()
-    # OGframe_width = int(cap.get(3))
-    # OGframe_height = int(cap.get(4))
-    # print("width, height:")
-    # print(OGframe_width, OGframe_height)
-    
-    # out.write(img)
-
+    cap.grab()
+    result, img = cap.retrieve()
+    OGimg = img
     frame = cv2.resize(img, (width, height))
-
-    
 
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     dst = pipeline(frame)
@@ -449,12 +391,18 @@ while test == True:
     plt.imshow(out_img)
     plt.plot(curves[0], ploty, color='yellow', linewidth=1)
     plt.plot(curves[1], ploty, color='yellow', linewidth=1)
-    # print(np.asarray(curves).shape)
+    print(np.asarray(curves).shape)
     curverad=get_curve(img, curves[0],curves[1])
     print(curverad)
+<<<<<<< HEAD
+<<<<<<< HEAD
     # with open(filename, 'a+', newline='') as file:
     #     writer = csv.writer(file)
     #     writer.writerow([curverad])
+=======
+>>>>>>> parent of e01a9af... Working Computer Vision of track
+=======
+>>>>>>> parent of e01a9af... Working Computer Vision of track
     img_ = draw_lanes(img, curves[0], curves[1])
     cv2.imshow("img",img_)
     cv2.waitKey(1)

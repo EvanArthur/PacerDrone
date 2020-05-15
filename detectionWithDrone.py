@@ -9,7 +9,6 @@ from djitellopy import Tello
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-import csv
 
 
 
@@ -323,8 +322,7 @@ def vid_pipeline(img):
 
 class ThreadedCamera(object):
     def __init__(self, src=0):
-        # self.capture = cv2.VideoCapture(src)
-        self.capture = me.get_frame_read()
+        self.capture = cv2.VideoCapture(src)
         self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
 
         # FPS = 1/X
@@ -341,6 +339,7 @@ class ThreadedCamera(object):
         while True:
             if self.capture.isOpened():
                 (self.status, self.frame) = self.capture.read()
+            time.sleep(self.FPS)
 
     def show_frame(self):
         
@@ -378,6 +377,9 @@ class ThreadedCamera(object):
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 5)
 # cap.set(cv2.CAP_PROP_FPS, 5)
 
+
+threaded_camera = ThreadedCamera("straightLines2.mp4")
+
 # Define width and height for working with the drone
 width = 640  # WIDTH OF THE IMAGE
 height = 480  # HEIGHT OF THE IMAGE
@@ -397,33 +399,15 @@ me.streamoff()
 me.streamon()
 ########################
 
-threaded_camera = ThreadedCamera("curved2.mp4")
-# threaded_camera = ThreadedCamera(me.get_frame_read())
-
 test = True
 count = 0
-out = cv2.VideoWriter('outpy1.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (1280,720))
-with open('curveData.csv', 'a+', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["NEW TEST HERE"])
-
-
 while True:
     try:
         # GET THE IMAGE FROM TELLO
-        # frame_read = me.get_frame_read()
-        myFrame = threaded_camera.show_frame()
+        frame_read = me.get_frame_read()
+        myFrame = frame_read.frame
         print("Creating image now")
         img = cv2.resize(myFrame, (width, height))
-        # imgContour = img.copy()
-
-
-        # frame_read = me.get_frame_read()
-        # myFrame = threaded_camera.frame
-        # # myFrame = frame_read.frame
-        # out.write(myFrame)
-        # print("Creating image now")
-        # img = cv2.resize(myFrame, (width, height))
         # imgContour = img.copy()
         # imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -435,13 +419,13 @@ while True:
 
         # cap.grab()
         # result, img = cap.retrieve()
-        # print("Making frame from image")
+        print("Making frame from image")
         frame = cv2.resize(img, (width, height))
-        print(frame.shape)
+        # print(frame.shape)
         # frame = frame[0:int(height/2),0:width,0:3]
         # frame = cv2.resize(frame, (width, height))
         print("performing cvtColor")
-        frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         dst = pipeline(frame)
         dst = perspective_warp(dst, dst_size=(1280,720))
 
@@ -451,10 +435,7 @@ while True:
         # plt.plot(curves[1], ploty, color='yellow', linewidth=1)
         # print(np.asarray(curves).shape)
         curverad=get_curve(img, curves[0],curves[1])
-        # print(curverad)
-        with open('curveData.csv', 'a+', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([curverad])
+        print(curverad)
         img_ = draw_lanes(img, curves[0], curves[1])
         cv2.imshow("img",img_)
         cv2.waitKey(1)
