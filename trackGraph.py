@@ -40,10 +40,4 @@ t = np.arange(0, 400)
 
 plt.plot(t, list(map(f, t)), 'b-')
 
-plt.title('Standard Track Curve Radius')
-
-plt.xlabel('Distance from Track Start (meters)')
-plt.ylabel('Curve Radius (meters)')
-
-plt.savefig("ReportPhotos/real_track_radii.png")
 plt.show()

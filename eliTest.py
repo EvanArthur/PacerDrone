@@ -415,12 +415,12 @@ class ThreadedCamera(object):
 # cap = cv2.VideoCapture("trimmedStraight2.mov")
 test = True
 # out = cv2.VideoWriter('outpy4.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (1280,720))
-# filename = 'curveDataELI.csv'
-# with open(filename, 'a+', newline='') as file:
-#         writer = csv.writer(file)
-#         writer.writerow(["NEW TEST HERE"])
+filename = 'curveDataELI.csv'
+with open(filename, 'a+', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["NEW TEST HERE"])
 
-threaded_camera = ThreadedCamera("straightToCurves.mp4")
+threaded_camera = ThreadedCamera("spedUpVid.mov")
 
 while test == True:
     left_a, left_b, left_c = [],[],[]
@@ -452,9 +452,9 @@ while test == True:
     # print(np.asarray(curves).shape)
     curverad=get_curve(img, curves[0],curves[1])
     print(curverad)
-    # with open(filename, 'a+', newline='') as file:
-    #     writer = csv.writer(file)
-    #     writer.writerow([curverad])
+    with open(filename, 'a+', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([curverad])
     img_ = draw_lanes(img, curves[0], curves[1])
     cv2.imshow("img",img_)
     cv2.waitKey(1)

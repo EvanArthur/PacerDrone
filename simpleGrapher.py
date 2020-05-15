@@ -12,23 +12,21 @@ with open('curveDataELI.csv', 'r') as csvfile:
     next(plots)
     next(plots)
     for row in plots:
-        # print(row[0])
+        print(row[0])
         row = ast.literal_eval(row[0])
         x.append(float(row[0]))
         y.append(float(row[1]))
         z.append(float(row[2]))
 
 t = np.arange(0, 341)
-z = z[175:]+z[:175]
-print(z)
+
 # plt.plot(t,x, marker='o')
 # plt.plot(t,y, marker='x')
 plt.plot(t,z, marker='.')
 
 plt.title('Radius from Computer Vision')
 
-plt.xlabel('Distance from Track Start (meters)')
-plt.ylabel('Detected Curve Radius (meters)')
+plt.xlabel('Meters')
+plt.ylabel('Radius')
 
-plt.savefig("ReportPhotos/cv_radii.png")
 plt.show()
