@@ -360,6 +360,7 @@ def vid_pipeline(img):
 cap = cv2.VideoCapture("curved.mp4")
 test = True
 <<<<<<< HEAD
+<<<<<<< HEAD
 # out = cv2.VideoWriter('outpy4.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (1280,720))
 # filename = 'curveDataELI.csv'
 # with open(filename, 'a+', newline='') as file:
@@ -368,6 +369,8 @@ test = True
 
 threaded_camera = ThreadedCamera("straightToCurves.mp4")
 
+=======
+>>>>>>> parent of e01a9af... Working Computer Vision of track
 =======
 >>>>>>> parent of e01a9af... Working Computer Vision of track
 while test == True:
@@ -392,9 +395,12 @@ while test == True:
     curverad=get_curve(img, curves[0],curves[1])
     print(curverad)
 <<<<<<< HEAD
+<<<<<<< HEAD
     # with open(filename, 'a+', newline='') as file:
     #     writer = csv.writer(file)
     #     writer.writerow([curverad])
+=======
+>>>>>>> parent of e01a9af... Working Computer Vision of track
 =======
 >>>>>>> parent of e01a9af... Working Computer Vision of track
     img_ = draw_lanes(img, curves[0], curves[1])
