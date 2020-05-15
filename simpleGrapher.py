@@ -7,7 +7,7 @@ x=[]
 y=[]
 z=[]
 
-with open('curveDataELI.csv', 'r') as csvfile:
+with open('curveData.csv', 'r') as csvfile:
     plots= csv.reader(csvfile, delimiter=',')
     next(plots)
     next(plots)
@@ -18,9 +18,12 @@ with open('curveDataELI.csv', 'r') as csvfile:
         y.append(float(row[1]))
         z.append(float(row[2]))
 
-t = np.arange(0, 341)
-z = z[175:]+z[:175]
-print(z)
+t = np.arange(0, 335*2)
+# t = np.arange(0, 335)
+# z = z[175:]+z[:175]
+z = z + z
+t = t*0.5899705015
+# print(z)
 # plt.plot(t,x, marker='o')
 # plt.plot(t,y, marker='x')
 plt.plot(t,z, marker='.')
